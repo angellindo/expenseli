@@ -9,6 +9,9 @@ const persistConfig = {
   key: "root",
   storage: AsyncStorage,
   whitelist: ["app"], // Only persist app state
+  // Add this to handle potential serialization issues
+  serialize: true,
+  deserialize: true,
 };
 
 const rootReducer = combineReducers({
@@ -23,7 +26,14 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
+        ignoredActions: [
+          "persist/PERSIST",
+          "persist/REHYDRATE",
+          "persist/REGISTER",
+          "persist/PURGE",
+          "persist/FLUSH",
+          "persist/PAUSE",
+        ],
       },
     }),
 });
