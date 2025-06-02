@@ -1,10 +1,67 @@
 import { createClient } from "@supabase/supabase-js";
+import { ENV } from "../../config/env";
 
-// For now, we'll use placeholder values
-// In Phase 2, we'll set up proper environment variables
-const supabaseUrl = "https://your-project.supabase.co";
-const supabaseAnonKey = "your-anon-key";
+export const supabase = createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+});
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Auth helper functions
+export const authService = {
+  // Sign up with email/password
+  signUp: async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    return { data, error };
+  },
 
-// We'll configure this properly in Phase 2
+  // Sign in with email/password
+  signIn: async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { data, error };
+  },
+
+  // Sign out
+  signOut: async () => {
+    const { error } = await supabase.auth.signOut();
+    return { error };
+  },
+
+  // Get current user
+  getCurrentUser: () => {
+    return supabase.auth.getUser();
+  },
+
+  // Listen to auth changes
+  onAuthStateChange: (callback: (event: string, session: any) => void) => {
+    return supabase.auth.onAuthStateChange(callback);
+  },
+
+  // Create guest user
+  createGuestUser: async () => {
+    const randomNum = Math.floor(Math.random() * 100000);
+    const guestEmail = `guest${randomNum}@expenseli.app`;
+    const guestPassword = `Guest123!_${randomNum}`;
+
+    const { data, error } = await supabase.auth.signUp({
+      email: guestEmail,
+      password: guestPassword,
+      options: {
+        data: {
+          is_guest: true,
+          guest_id: `guest-${Date.now()}`,
+        },
+      },
+    });
+
+    return { data, error };
+  },
+};
